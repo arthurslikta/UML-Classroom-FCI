@@ -35,22 +35,30 @@
 
 *Criação de um software de entrega rápida de drones utilizando conceitos de UML e esquematização de soluções*
 
-# Análise de Requisitos Funcionais e Não-Funcionais
-*&lt;Descrição dos requisitos&gt;*
+
+# Diagrama de Classes
+
+![alt text](<diagrama de classe.jpg.png>)
+
 
 # Diagrama de Sequência
 
 ![alt text](<diagrama de sequência.jpg>)
 
-# Diagrama de Classes
 
-![alt text](<Diagrama de Classes.png>)
+# Integração de modelos (Classes + Banco de Dados)
+
+
+# Diagrama de Projeto (com abstrações e interfaces)
+
+
+# Integração Sequência + Colaboração
 
 # Diagrama de Estados
 
 *&lt;Diagrama para permite modelar o comportamento interno de um determinado objeto, subsistema ou sistema global&gt;*
 
-# Diagrama de Implantação
+# Projeto Final (código Java , documentação e vídeo demo)
 
 *&lt;Diagrama para exibir o relacionamento de hardware e software no projeto&gt;*
 
