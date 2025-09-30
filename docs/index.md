@@ -40,7 +40,7 @@
 
 # Diagrama de Sequência
 
-*&lt;Diagrama de ordem e interação dos objetos&gt;*
+![alt text](<diagrama de sequência.jpg>)
 
 # Diagrama de Classes
 
