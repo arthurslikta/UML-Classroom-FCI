@@ -33,22 +33,10 @@
 
 # Descrição do Projeto
 
-*&lt;Introdução do projeto&gt;*
+*Criação de um software de entrega rápida de drones utilizando conceitos de UML e esquematização de soluções*
 
 # Análise de Requisitos Funcionais e Não-Funcionais
 *&lt;Descrição dos requisitos&gt;*
-
-# Diagrama de Atividades
-
-*&lt;Diagrama para visualizer as pessoas das áreas de negócios e de desenvolvimento de uma organização para entender o processo e comportamento.&gt;*
-
-# Diagrama de Casos de Uso
-
-*&lt;Diagrama para visualizar o comportamento dos atores&gt;*
-
-# Descrição dos Casos de Uso
-
-*&lt;Descrição do comportamento entre os atores/resquisitos&gt;*
 
 # Diagrama de Sequência
 
@@ -56,7 +44,7 @@
 
 # Diagrama de Classes
 
-*&lt;Diagrama de relacionamento entre classes para os seus atributos e operações&gt;*
+![alt text](<Diagrama de Classes.png>)
 
 # Diagrama de Estados
 
