@@ -49,6 +49,9 @@
 # Integração de modelos (Classes + Banco de Dados)
 
 
+
+![alt text](<WhatsApp Image 2025-10-01 at 17.11.51.jpeg>)
+
 # Diagrama de Projeto (com abstrações e interfaces)
 
 
