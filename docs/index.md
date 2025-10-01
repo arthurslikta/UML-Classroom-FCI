@@ -3,7 +3,7 @@
 
 
 <font size="+12"><center>
-*&lt;Nome do Projeto&gt;*
+*&lt;Sistema de entregas com drones&gt;*
 </center></font>
 
 >*Observação 1: A estrutura inicial deste documento é só um exemplo. O seu grupo deverá alterar esta estrutura de acordo com o que está sendo solicitado na disciplina.*
@@ -14,14 +14,12 @@
 
 - [Autores](#nome-alunos)
 - [Descrição do Projeto](#introdução-do-projeto)
-- [Análise de Requisitos Funcionais e Não-Fucionais](#descrição-dos-requisitos)
+- [Diagrama de Classes](#diagrama-orientado-objetos)
 - [Diagrama de Atividades](#diagrama-de-atividades) 
 - [Diagrama de Casos de Uso](#diagrama-de-comportamento-atores)
 - [Descrição dos Casos de Uso](#descrição-das-funcões)
 - [Diagrama de Senquencia](#diagrama-de-ordem-interações)
-- [Diagrama de Classes](#diagrama-orientado-objetos)
 - [Diagrama de Estados](#diagrama-estrutura-componente)
-- [Diagrama de Implantação](#diagrama-de-hardware-software)
 - [Referências](#referências)
 
 
@@ -59,11 +57,9 @@
 
 # Diagrama de Estados
 
-*&lt;Diagrama para permite modelar o comportamento interno de um determinado objeto, subsistema ou sistema global&gt;*
 
 # Projeto Final (código Java , documentação e vídeo demo)
 
-*&lt;Diagrama para exibir o relacionamento de hardware e software no projeto&gt;*
 
 # Referências
 
