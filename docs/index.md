@@ -36,12 +36,12 @@
 
 # Diagrama de Classes
 
-![alt text](<imagens/diagrama de classe.jpg.png>)
+![alt text](<imagens/diagrama de classe.png>)
 
 
 # Diagrama de Sequência
 
-![alt text](<imagens/diagrama de sequência.jpg>)
+![alt text](<imagens/diagrama de sequencia.jpg>)
 
 
 # Integração de modelos (Classes + Banco de Dados)
