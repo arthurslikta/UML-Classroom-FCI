@@ -41,7 +41,7 @@
 
 # Diagrama de Sequência
 
-![alt text](<imagens/diagrama de sequencia.jpg>)
+![alt text](<imagens/diagrama de sequencia.png>)
 
 
 # Integração de modelos (Classes + Banco de Dados)
