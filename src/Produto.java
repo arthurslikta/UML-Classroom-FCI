@@ -1,39 +1,24 @@
-import java.util.ArrayList;
-import java.util.List;
-
 public class Produto {
-    private int id;
+
+    private int IDproduto;
     private String nome;
-    private float preco;
+    private double preco;
     private double peso;
 
-    private static List<Produto> produtos = new ArrayList<>();
-
-    public Produto(int id, String nome, float preco, double peso) {
-        this.id = id;
+    public Produto(int id, String nome, double preco, double peso) {
+        this.IDproduto = id;
         this.nome = nome;
         this.preco = preco;
         this.peso = peso;
     }
 
-    public int getId(){ 
-        return id; 
-    }
-    public float getPreco() { 
-        return preco; 
-    }
-    public String getNome() { 
-        return nome; 
-    }
-    public double getPeso() { 
-        return peso; 
+    public void addProduto() {
+        BancoDeDados.salvarProduto(this);
     }
 
-    public static void addProduto(Produto p) {
-        produtos.add(p);
+    public void atualizarEstoque(int qtd) {
     }
 
-    public static List<Produto> listarProdutos() {
-        return produtos;
-    }
+    public double getPreco() { return preco; }
+    public double getPeso() { return peso; }
 }

@@ -2,40 +2,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Drone {
-    private int id;
+
+    private int IDdrone;
     private int bateria;
     private float capacidadePeso;
     private boolean disponibilidade;
 
-    private static List<Drone> drones = new ArrayList<>();
+    private List<Entrega> entregas = new ArrayList<>();
 
-    public Drone(int id, float capacidadePeso, boolean disponibilidade, int bateria) {
-        if (capacidadePeso <= 0) throw new IllegalArgumentException("Capacidade deve ser maior que zero.");
-        this.id = id;
-        this.bateria = bateria;
-        this.capacidadePeso = capacidadePeso;
-        this.disponibilidade = disponibilidade;
+    public boolean atribuiçãoAutomatica(Pedido pedido) {
+        return validarPeso(pedido.getProduto().getPeso() * pedido.getQuantidade())
+                && validarBateria();
     }
 
     public boolean validarPeso(double peso) {
-        if (!disponibilidade) {
-            throw new IllegalStateException("Drone indisponível para entrega.");
-        }
         return peso <= capacidadePeso;
     }
 
-    public int getId() {
-         return id;
-         }
-    public boolean getDisponibilidade() { 
-        return disponibilidade; 
+    public boolean validarBateria() {
+        return bateria >= 20;
     }
 
-    public static void addDrone(Drone d) {
-        drones.add(d);
-    }
-
-    public static List<Drone> listarDrones() {
-        return drones;
+    public List<Entrega> historicoDrone() {
+        return entregas;
     }
 }

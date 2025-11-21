@@ -46,7 +46,7 @@
 
 # Integração de modelos (Classes + Banco de Dados)
 
-![alt text](<imagens/Banco de dados.png>)
+![alt text](<imagens/diagrama banco de dados.png>)
 
 # Diagrama de Projeto (com abstrações e interfaces)
 

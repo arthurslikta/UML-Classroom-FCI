@@ -2,48 +2,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Cliente {
-    private int id;
     private String nome;
-    private String login;
     private int idade;
+    private int IDcliente;
+    private String login;
+    private String senha; 
     private String endereco;
-    private String senha;
 
-    private static List<Cliente> clientes = new ArrayList<>();
+    private List<Pedido> historico = new ArrayList<>();
 
-
-    
-    public Cliente(int id, String nome, String login, int idade, String senha, String endereco) {
-        this.id = id;
-        this.nome = nome;
-        this.login = login;
-        this.idade = idade;
-        this.senha = senha;
-        this.endereco = endereco;
+    public Pedido solicitarPedido(Produto produto, int quantidade) {
+        Pedido p = new Pedido(produto, quantidade);
+        historico.add(p);
+        return p;
     }
 
-    public int getId() {
-         return id; 
-        }
-    public String getNome() {
-         return nome; 
-        }
-
-    public String getLogin() { 
-        return login; 
-    }
-    public String getSenha() { 
-        return senha; 
-    }
-    public String getEndereco() { 
-        return endereco; 
+    public List<Pedido> historicoCliente() {
+        return historico;
     }
 
-    public static void addCliente(Cliente c) {
-        clientes.add(c);
+    public boolean atualizarEndereco(String novoEndereco) {
+        if (novoEndereco == null || novoEndereco.isBlank()) return false;
+        this.endereco = novoEndereco;
+        return true;
     }
 
-    public static List<Cliente> listarClientes() {
-        return clientes;
-    }
 }
