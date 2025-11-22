@@ -47,6 +47,7 @@
 
 # Diagrama de Projeto (com abstrações e interfaces)
 
+![alt text](<imagens/diagrama de projeto.png>)
 
 # Integração Sequência + Colaboração
 
