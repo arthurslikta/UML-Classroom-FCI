@@ -50,6 +50,7 @@
 
 # Integração Sequência + Colaboração
 
+![alt text](<imagens/diagrama de colaboração.jpg>)
 
 # Diagrama de Estados
 
