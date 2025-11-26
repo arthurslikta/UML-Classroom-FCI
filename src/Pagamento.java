@@ -1,22 +1,40 @@
 public class Pagamento {
 
-    private int IDpagamento;
-    private double valor;
-    private String formaPagamento;
-    private String status = "pendente";
+    private int idPagamento;
+    private int idPedido;
+    private double valorPago;
+    private TipoPagamento tipoPagamento;
+    private boolean confirmado;
 
-    public Pagamento(double valor, String formaPagamento) {
-        this.valor = valor;
-        this.formaPagamento = formaPagamento;
+    public Pagamento(int idPagamento, int idPedido, double valorPago, TipoPagamento tipoPagamento) {
+        this.idPagamento = idPagamento;
+        this.idPedido = idPedido;
+        this.valorPago = valorPago;
+        this.tipoPagamento = tipoPagamento;
+        this.confirmado = false;
     }
 
-    public boolean validarPagamento() {
-        if (valor <= 0) return false;
-        return true;
+    public int getIdPagamento() {
+        return idPagamento;
     }
 
-    public void confirmarPagamento() {
-        if (validarPagamento()) status = "pago";
-        else status = "cancelado";
+    public int getIdPedido() {
+        return idPedido;
+    }
+
+    public double getValorPago() {
+        return valorPago;
+    }
+
+    public TipoPagamento getTipoPagamento() {
+        return tipoPagamento;
+    }
+
+    public boolean isConfirmado() {
+        return confirmado;
+    }
+
+    public void confirmar() {
+        this.confirmado = true;
     }
 }

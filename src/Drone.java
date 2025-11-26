@@ -9,7 +9,7 @@ public class Drone {
         this.capacidadePeso = capacidadePeso;
     }
 
-    public int getId() { return id; }
+    public int getIdDrone() { return id; }
 
     public boolean validarPeso(double peso) {
         return peso <= capacidadePeso;

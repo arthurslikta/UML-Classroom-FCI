@@ -11,5 +11,19 @@ public class Entrega {
         this.endereco = endereco;
     }
 
-    public int getId() { return id; }
+    public int getId() {
+        return id;
+    }
+
+    public int getIdPedido() {
+        return idPedido;
+    }
+
+    public int getIdDrone() {
+        return idDrone;
+    }
+
+    public String getEndereco() {
+        return endereco;
+    }
 }
