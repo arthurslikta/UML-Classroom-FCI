@@ -1,30 +1,15 @@
-import java.util.Date;
-
 public class Pedido {
-
-    private int IDpedido;
-    private Date dataPedido = new Date();
-    private int quantidade;
+    private int id;
+    private int idCliente;
     private double valorTotal;
 
-    private Produto produto;
-    private String status = "pendente";
-
-    public Pedido(Produto produto, int quantidade) {
-        this.produto = produto;
-        this.quantidade = quantidade;
-        calcularValorTotal();
+    public Pedido(int id, int idCliente) {
+        this.id = id;
+        this.idCliente = idCliente;
     }
 
-    public double calcularValorTotal() {
-        this.valorTotal = produto.getPreco() * quantidade;
-        return valorTotal;
-    }
-
-    public void atualizarStatus(String novoStatus) {
-        this.status = novoStatus;
-    }
-
-    public Produto getProduto() { return produto; }
+    public int getId() { return id; }
+    public int getIdCliente() { return idCliente; }
     public double getValorTotal() { return valorTotal; }
+    public void setValorTotal(double v) { valorTotal = v; }
 }

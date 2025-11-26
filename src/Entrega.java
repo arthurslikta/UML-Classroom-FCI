@@ -1,30 +1,15 @@
-import java.util.Date;
-
 public class Entrega {
-
-    private int IDentrega;
+    private int id;
+    private int idPedido;
+    private int idDrone;
     private String endereco;
-    private double peso;
-    private Date prazo;
-    private boolean statusPedido;
 
-    private Drone drone;
-
-    public Entrega(String endereco, double peso, Date prazo) {
+    public Entrega(int id, int idPedido, int idDrone, String endereco) {
+        this.id = id;
+        this.idPedido = idPedido;
+        this.idDrone = idDrone;
         this.endereco = endereco;
-        this.peso = peso;
-        this.prazo = prazo;
     }
 
-    public boolean validarEndereco() {
-        return endereco != null && !endereco.isBlank();
-    }
-
-    public void atualizarStatus(boolean status) {
-        this.statusPedido = status;
-    }
-
-    public void atribuirDrone(Drone drone) {
-        this.drone = drone;
-    }
+    public int getId() { return id; }
 }

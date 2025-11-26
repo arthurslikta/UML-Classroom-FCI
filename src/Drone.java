@@ -1,29 +1,21 @@
-import java.util.ArrayList;
-import java.util.List;
-
 public class Drone {
-
-    private int IDdrone;
+    private int id;
     private int bateria;
-    private float capacidadePeso;
-    private boolean disponibilidade;
+    private double capacidadePeso;
 
-    private List<Entrega> entregas = new ArrayList<>();
-
-    public boolean atribuiçãoAutomatica(Pedido pedido) {
-        return validarPeso(pedido.getProduto().getPeso() * pedido.getQuantidade())
-                && validarBateria();
+    public Drone(int id, int bateria, double capacidadePeso) {
+        this.id = id;
+        this.bateria = bateria;
+        this.capacidadePeso = capacidadePeso;
     }
+
+    public int getId() { return id; }
 
     public boolean validarPeso(double peso) {
         return peso <= capacidadePeso;
     }
 
     public boolean validarBateria() {
-        return bateria >= 20;
-    }
-
-    public List<Entrega> historicoDrone() {
-        return entregas;
+        return bateria >= 25;
     }
 }
