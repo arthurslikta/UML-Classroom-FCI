@@ -58,6 +58,6 @@
 # Projeto Final (código Java , documentação e vídeo demo)
 
 
-# Referências
+# Link do vídeo
 
-*&lt;Lista de referências&gt;*
+https://youtu.be/wENWWBnZ6rE
