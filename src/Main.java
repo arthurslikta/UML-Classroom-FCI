@@ -3,6 +3,7 @@ import java.util.*;
 
 public class Main {
 
+    // Instâncias dos DAOs que acessam o MySQL
     static ClienteDAO clienteDAO = new ClienteDAO();
     static DroneDAO droneDAO = new DroneDAO();
     static PedidoDAO pedidoDAO = new PedidoDAO();
@@ -13,14 +14,17 @@ public class Main {
 
     static Scanner sc = new Scanner(System.in);
 
+
+    // Lê uma String e verifica se o usuário digitou "menu"
     private static String lerEntrada() {
         String entrada = sc.nextLine().trim();
         if (entrada.equalsIgnoreCase("menu")) {
-            throw new RuntimeException("VOLTAR_MENU");
+            throw new RuntimeException("VOLTAR_MENU"); // usado para retornar ao menu
         }
         return entrada;
     }
 
+    // Lê um número inteiro com suporte ao "menu"
     private static int lerInt() {
         String entrada = lerEntrada();
         if (!entrada.matches("\\d+")) {
@@ -29,6 +33,7 @@ public class Main {
         return Integer.parseInt(entrada);
     }
 
+    // Lê um número decimal com suporte ao "menu"
     private static double lerDouble() {
         String entrada = lerEntrada();
         try {
@@ -37,6 +42,7 @@ public class Main {
             throw new RuntimeException("VOLTAR_MENU");
         }
     }
+
 
     private static double calcularPesoTotal(List<ProdutoPedido> itens) {
         double pesoTotal = 0;
@@ -47,6 +53,7 @@ public class Main {
         return pesoTotal;
     }
 
+    // Cálculo do valor total
     private static double calcularValorTotal(List<ProdutoPedido> itens) {
         double total = 0;
         for (ProdutoPedido pp : itens) {
@@ -58,7 +65,7 @@ public class Main {
 
     private static void inicializarProdutos() {
         if (produtoDAO.buscar(1) != null)
-            return;
+            return; // já inicializado
 
         produtoDAO.salvar(new Produto(1, "Smartphone", 1800.0, 0.3));
         produtoDAO.salvar(new Produto(2, "Notebook", 3500.0, 2.0));
@@ -69,15 +76,17 @@ public class Main {
         System.out.println("Produtos iniciais cadastrados.");
     }
 
+
     private static List<ProdutoPedido> selecionarProdutos(int idPedido) {
         List<ProdutoPedido> lista = new ArrayList<>();
 
         while (true) {
             System.out.println("\n=== PRODUTOS ===");
 
+            // Lista todos os produtos do MySQL
             try (var con = ConnectionFactory.getConnection();
-                    var stmt = con.prepareStatement("SELECT * FROM Produto");
-                    var rs = stmt.executeQuery()) {
+                 var stmt = con.prepareStatement("SELECT * FROM Produto");
+                 var rs = stmt.executeQuery()) {
 
                 while (rs.next()) {
                     System.out.println(
@@ -95,8 +104,9 @@ public class Main {
             int idProd = lerInt();
 
             if (idProd == 0)
-                break;
+                break; // finaliza seleção
 
+            // Valida produto
             Produto produto = produtoDAO.buscar(idProd);
             if (produto == null) {
                 System.out.println("Produto inválido!");
@@ -106,6 +116,7 @@ public class Main {
             System.out.print("Quantidade: ");
             int qtd = lerInt();
 
+            // Cria o registro ProdutoPedido no banco
             ProdutoPedido pp = new ProdutoPedido(gerarId(), idPedido, idProd, qtd);
             produtoPedidoDAO.salvar(pp);
             lista.add(pp);
@@ -116,83 +127,85 @@ public class Main {
         return lista;
     }
 
-    // RESETAR BANCO AO INICIAR
+
     private static void resetarBanco() {
         try (var con = ConnectionFactory.getConnection();
-                var st = con.createStatement()) {
+             var st = con.createStatement()) {
 
+            // Remove e recria o banco do zero
             st.execute("DROP DATABASE IF EXISTS SistemaDrone");
             st.execute("CREATE DATABASE SistemaDrone");
             st.execute("USE SistemaDrone");
 
+            // Criação das tabelas
             st.execute("""
-                        CREATE TABLE Cliente (
-                            id INT PRIMARY KEY,
-                            nome VARCHAR(100),
-                            email VARCHAR(100),
-                            senha VARCHAR(100),
-                            endereco VARCHAR(200)
-                        );
-                    """);
+                    CREATE TABLE Cliente (
+                        id INT PRIMARY KEY,
+                        nome VARCHAR(100),
+                        email VARCHAR(100),
+                        senha VARCHAR(100),
+                        endereco VARCHAR(200)
+                    );
+                """);
 
             st.execute("""
-                        CREATE TABLE Drone (
-                            id INT PRIMARY KEY,
-                            bateria INT,
-                            capacidadePeso DOUBLE
-                        );
-                    """);
+                    CREATE TABLE Drone (
+                        id INT PRIMARY KEY,
+                        bateria INT,
+                        capacidadePeso DOUBLE
+                    );
+                """);
 
             st.execute("""
-                        CREATE TABLE Pedido (
-                            id INT PRIMARY KEY,
-                            idCliente INT,
-                            valorTotal DOUBLE,
-                            FOREIGN KEY (idCliente) REFERENCES Cliente(id)
-                        );
-                    """);
+                    CREATE TABLE Pedido (
+                        id INT PRIMARY KEY,
+                        idCliente INT,
+                        valorTotal DOUBLE,
+                        FOREIGN KEY (idCliente) REFERENCES Cliente(id)
+                    );
+                """);
 
             st.execute("""
-                        CREATE TABLE Produto (
-                            id INT PRIMARY KEY,
-                            nome VARCHAR(100),
-                            preco DOUBLE,
-                            peso DOUBLE
-                        );
-                    """);
+                    CREATE TABLE Produto (
+                        id INT PRIMARY KEY,
+                        nome VARCHAR(100),
+                        preco DOUBLE,
+                        peso DOUBLE
+                    );
+                """);
 
             st.execute("""
-                        CREATE TABLE ProdutoPedido (
-                            id INT PRIMARY KEY,
-                            idPedido INT,
-                            idProduto INT,
-                            quantidade INT,
-                            FOREIGN KEY (idPedido) REFERENCES Pedido(id),
-                            FOREIGN KEY (idProduto) REFERENCES Produto(id)
-                        );
-                    """);
+                    CREATE TABLE ProdutoPedido (
+                        id INT PRIMARY KEY,
+                        idPedido INT,
+                        idProduto INT,
+                        quantidade INT,
+                        FOREIGN KEY (idPedido) REFERENCES Pedido(id),
+                        FOREIGN KEY (idProduto) REFERENCES Produto(id)
+                    );
+                """);
 
             st.execute("""
-                        CREATE TABLE Pagamento (
-                            idPagamento INT PRIMARY KEY,
-                            idPedido INT,
-                            valorPago DOUBLE,
-                            tipoPagamento VARCHAR(20),
-                            confirmado BOOLEAN,
-                            FOREIGN KEY (idPedido) REFERENCES Pedido(id)
-                        );
-                    """);
+                    CREATE TABLE Pagamento (
+                        idPagamento INT PRIMARY KEY,
+                        idPedido INT,
+                        valorPago DOUBLE,
+                        tipoPagamento VARCHAR(20),
+                        confirmado BOOLEAN,
+                        FOREIGN KEY (idPedido) REFERENCES Pedido(id)
+                    );
+                """);
 
             st.execute("""
-                        CREATE TABLE Entrega (
-                            id INT PRIMARY KEY,
-                            idPedido INT,
-                            idDrone INT,
-                            endereco VARCHAR(200),
-                            FOREIGN KEY (idPedido) REFERENCES Pedido(id),
-                            FOREIGN KEY (idDrone) REFERENCES Drone(id)
-                        );
-                    """);
+                    CREATE TABLE Entrega (
+                        id INT PRIMARY KEY,
+                        idPedido INT,
+                        idDrone INT,
+                        endereco VARCHAR(200),
+                        FOREIGN KEY (idPedido) REFERENCES Pedido(id),
+                        FOREIGN KEY (idDrone) REFERENCES Drone(id)
+                    );
+                """);
 
             System.out.println("Banco resetado automaticamente.");
 
@@ -201,9 +214,10 @@ public class Main {
         }
     }
 
+
     public static void main(String[] args) {
-        resetarBanco();
-        inicializarProdutos();
+        resetarBanco();      // recria o BD
+        inicializarProdutos(); // popula produtos
 
         while (true) {
             System.out.println("\n===== SISTEMA DE ENTREGAS POR DRONE =====");
@@ -248,9 +262,7 @@ public class Main {
         }
     }
 
-    // =========================================================
-    // CADASTRO DE CLIENTE (com "menu")
-    // =========================================================
+
     private static void cadastrarCliente() {
         System.out.println("\n=== CADASTRO DE CLIENTE ===");
         try {
@@ -283,9 +295,6 @@ public class Main {
         }
     }
 
-    // =========================================================
-    // CADASTRO DE DRONE (com "menu")
-    // =========================================================
     private static void cadastrarDrone() {
         System.out.println("\n=== CADASTRO DE DRONE ===");
         try {
@@ -311,9 +320,6 @@ public class Main {
         }
     }
 
-    // =========================================================
-    // SOLICITA ENTREGA (com "menu")
-    // =========================================================
     private static void solicitarEntrega() {
         System.out.println("\n=== SOLICITAÇÃO DE ENTREGA ===");
 
@@ -325,13 +331,13 @@ public class Main {
             if (cliente == null)
                 throw new RuntimeException("Cliente não encontrado.");
 
-            // PASSO 1 — Criar pedido
+            // 1. Criar pedido
             int idPedido = gerarId();
             Pedido pedido = new Pedido(idPedido, idCliente);
             pedido.setValorTotal(0);
             pedidoDAO.salvar(pedido);
 
-            // PASSO 2 — Selecionar produtos
+            // 2. Selecionar produtos
             List<ProdutoPedido> itens = selecionarProdutos(idPedido);
 
             if (itens.isEmpty()) {
@@ -339,13 +345,13 @@ public class Main {
                 return;
             }
 
-            // PASSO 3 — Atualizar valor total
+            // 3. Atualizar valor total
             double pesoTotal = calcularPesoTotal(itens);
             double valorTotal = calcularValorTotal(itens);
             pedido.setValorTotal(valorTotal);
             pedidoDAO.atualizarValor(pedido);
 
-            // PASSO 4 — Pagamento
+            // 4. pagamento
             System.out.println("\nSelecione o tipo de pagamento:");
             System.out.println("1 - PIX");
             System.out.println("2 - Crédito");
@@ -355,7 +361,7 @@ public class Main {
             int tipoPag = lerInt();
 
             TipoPagamento tipo = switch (tipoPag) {
-                case 1 -> TipoPagamento.PIX;
+                case 1 -> TipoPagamento.PIX;  
                 case 2 -> TipoPagamento.CARTAO_CREDITO;
                 case 3 -> TipoPagamento.CARTAO_DEBITO;
                 default -> TipoPagamento.DINHEIRO;
@@ -365,17 +371,17 @@ public class Main {
             pagamento.confirmar();
             pagamentoDAO.salvar(pagamento);
 
-            // PASSO 5 — Endereço
+            // 5. Endereço
             System.out.print("Endereço de entrega: ");
             String destino = lerEntrada();
             validarEndereco(destino);
 
-            // PASSO 6 — Escolher drone
+            // 6. Escolher drone
             Drone drone = escolherDrone(pesoTotal);
             if (drone == null)
                 throw new RuntimeException("Nenhum drone disponível.");
 
-            // PASSO 7 — Criar entrega
+            // 7. Criar entrega
             Entrega e = new Entrega(gerarId(), idPedido, drone.getIdDrone(), destino);
             entregaDAO.salvar(e);
 
@@ -390,9 +396,6 @@ public class Main {
         }
     }
 
-    // =========================================================
-    // HISTÓRICOS (com suporte ao menu)
-    // =========================================================
     private static void historicoPorCliente() {
         System.out.print("ID do cliente: ");
 
@@ -432,28 +435,16 @@ public class Main {
             } catch (SQLException e) {
                 System.out.println("Erro ao buscar histórico do cliente: " + e.getMessage());
             } finally {
-                if (rs != null)
-                    try {
-                        rs.close();
-                    } catch (Exception ignored) {
-                    }
-                if (stmt != null)
-                    try {
-                        stmt.close();
-                    } catch (Exception ignored) {
-                    }
-                if (con != null)
-                    try {
-                        con.close();
-                    } catch (Exception ignored) {
-                    }
+                if (rs != null) try { rs.close(); } catch (Exception ignored) {}
+                if (stmt != null) try { stmt.close(); } catch (Exception ignored) {}
+                if (con != null) try { con.close(); } catch (Exception ignored) {}
             }
 
         } catch (RuntimeException e) {
             if ("VOLTAR_MENU".equals(e.getMessage()))
                 System.out.println("Voltando ao menu...");
             else
-                throw e; // deixa quebrar pra ver o erro real
+                throw e;
         }
     }
 
@@ -493,21 +484,9 @@ public class Main {
             } catch (SQLException e) {
                 System.out.println("Erro ao buscar histórico do drone: " + e.getMessage());
             } finally {
-                if (rs != null)
-                    try {
-                        rs.close();
-                    } catch (Exception ignored) {
-                    }
-                if (stmt != null)
-                    try {
-                        stmt.close();
-                    } catch (Exception ignored) {
-                    }
-                if (con != null)
-                    try {
-                        con.close();
-                    } catch (Exception ignored) {
-                    }
+                if (rs != null) try { rs.close(); } catch (Exception ignored) {}
+                if (stmt != null) try { stmt.close(); } catch (Exception ignored) {}
+                if (con != null) try { con.close(); } catch (Exception ignored) {}
             }
 
         } catch (RuntimeException e) {
@@ -518,19 +497,20 @@ public class Main {
         }
     }
 
-    // =========================================================
-    // UTILIDADES
-    // =========================================================
+
+    // Gera ID aleatório
     private static int gerarId() {
         return new Random().nextInt(999999);
     }
 
+    // Validação simples de endereço
     private static void validarEndereco(String endereco) {
         if (endereco.length() < 6 || !endereco.matches(".*\\d.*")) {
             throw new RuntimeException("Endereço inválido.");
         }
     }
 
+    // Seleciona o primeiro drone válido baseado no peso
     private static Drone escolherDrone(double peso) {
         List<Drone> drones = droneDAO.listarDisponiveis();
 
@@ -540,6 +520,6 @@ public class Main {
             }
         }
 
-        return null;
+        return null; // nenhum drone compatível
     }
 }
