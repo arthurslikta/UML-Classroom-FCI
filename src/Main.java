@@ -1,33 +1,230 @@
+import java.sql.*;
 import java.util.*;
 
 public class Main {
 
-    static ClienteDAOHash clienteDAO = new ClienteDAOHash();
-    static DroneDAOHash droneDAO = new DroneDAOHash();
-    static PedidoDAOHash pedidoDAO = new PedidoDAOHash();
-    static ProdutoDAOHash produtoDAO = new ProdutoDAOHash();
-    static ProdutoPedidoDAOHash produtoPedidoDAO = new ProdutoPedidoDAOHash();
-    static PagamentoDAOHash.HashMapDAO pagamentoDAO = new PagamentoDAOHash.HashMapDAO();
-    static EntregaDAOHash entregaDAO = new EntregaDAOHash();
+    static ClienteDAO clienteDAO = new ClienteDAO();
+    static DroneDAO droneDAO = new DroneDAO();
+    static PedidoDAO pedidoDAO = new PedidoDAO();
+    static ProdutoDAO produtoDAO = new ProdutoDAO();
+    static ProdutoPedidoDAO produtoPedidoDAO = new ProdutoPedidoDAO();
+    static PagamentoDAO pagamentoDAO = new PagamentoDAO();
+    static EntregaDAO entregaDAO = new EntregaDAO();
 
     static Scanner sc = new Scanner(System.in);
 
+    private static String lerEntrada() {
+        String entrada = sc.nextLine().trim();
+        if (entrada.equalsIgnoreCase("menu")) {
+            throw new RuntimeException("VOLTAR_MENU");
+        }
+        return entrada;
+    }
+
+    private static int lerInt() {
+        String entrada = lerEntrada();
+        if (!entrada.matches("\\d+")) {
+            throw new RuntimeException("VOLTAR_MENU");
+        }
+        return Integer.parseInt(entrada);
+    }
+
+    private static double lerDouble() {
+        String entrada = lerEntrada();
+        try {
+            return Double.parseDouble(entrada);
+        } catch (Exception e) {
+            throw new RuntimeException("VOLTAR_MENU");
+        }
+    }
+
+    private static double calcularPesoTotal(List<ProdutoPedido> itens) {
+        double pesoTotal = 0;
+        for (ProdutoPedido pp : itens) {
+            Produto p = produtoDAO.buscar(pp.getIdProduto());
+            pesoTotal += p.getPeso() * pp.getQuantidade();
+        }
+        return pesoTotal;
+    }
+
+    private static double calcularValorTotal(List<ProdutoPedido> itens) {
+        double total = 0;
+        for (ProdutoPedido pp : itens) {
+            Produto p = produtoDAO.buscar(pp.getIdProduto());
+            total += p.getPreco() * pp.getQuantidade();
+        }
+        return total;
+    }
+
+    private static void inicializarProdutos() {
+        if (produtoDAO.buscar(1) != null)
+            return;
+
+        produtoDAO.salvar(new Produto(1, "Smartphone", 1800.0, 0.3));
+        produtoDAO.salvar(new Produto(2, "Notebook", 3500.0, 2.0));
+        produtoDAO.salvar(new Produto(3, "Fone Bluetooth", 250.0, 0.1));
+        produtoDAO.salvar(new Produto(4, "Livro", 50.0, 0.4));
+        produtoDAO.salvar(new Produto(5, "Câmera Fotográfica", 2200.0, 0.8));
+
+        System.out.println("Produtos iniciais cadastrados.");
+    }
+
+    private static List<ProdutoPedido> selecionarProdutos(int idPedido) {
+        List<ProdutoPedido> lista = new ArrayList<>();
+
+        while (true) {
+            System.out.println("\n=== PRODUTOS ===");
+
+            try (var con = ConnectionFactory.getConnection();
+                    var stmt = con.prepareStatement("SELECT * FROM Produto");
+                    var rs = stmt.executeQuery()) {
+
+                while (rs.next()) {
+                    System.out.println(
+                            rs.getInt("id") + " - " +
+                                    rs.getString("nome") + " | R$" +
+                                    rs.getDouble("preco") + " | " +
+                                    rs.getDouble("peso") + "kg");
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException("Erro ao listar produtos: " + e.getMessage());
+            }
+
+            System.out.print("ID do produto (0 para finalizar): ");
+            int idProd = lerInt();
+
+            if (idProd == 0)
+                break;
+
+            Produto produto = produtoDAO.buscar(idProd);
+            if (produto == null) {
+                System.out.println("Produto inválido!");
+                continue;
+            }
+
+            System.out.print("Quantidade: ");
+            int qtd = lerInt();
+
+            ProdutoPedido pp = new ProdutoPedido(gerarId(), idPedido, idProd, qtd);
+            produtoPedidoDAO.salvar(pp);
+            lista.add(pp);
+
+            System.out.println("Adicionado!");
+        }
+
+        return lista;
+    }
+
+    // RESETAR BANCO AO INICIAR
+    private static void resetarBanco() {
+        try (var con = ConnectionFactory.getConnection();
+                var st = con.createStatement()) {
+
+            st.execute("DROP DATABASE IF EXISTS SistemaDrone");
+            st.execute("CREATE DATABASE SistemaDrone");
+            st.execute("USE SistemaDrone");
+
+            st.execute("""
+                        CREATE TABLE Cliente (
+                            id INT PRIMARY KEY,
+                            nome VARCHAR(100),
+                            email VARCHAR(100),
+                            senha VARCHAR(100),
+                            endereco VARCHAR(200)
+                        );
+                    """);
+
+            st.execute("""
+                        CREATE TABLE Drone (
+                            id INT PRIMARY KEY,
+                            bateria INT,
+                            capacidadePeso DOUBLE
+                        );
+                    """);
+
+            st.execute("""
+                        CREATE TABLE Pedido (
+                            id INT PRIMARY KEY,
+                            idCliente INT,
+                            valorTotal DOUBLE,
+                            FOREIGN KEY (idCliente) REFERENCES Cliente(id)
+                        );
+                    """);
+
+            st.execute("""
+                        CREATE TABLE Produto (
+                            id INT PRIMARY KEY,
+                            nome VARCHAR(100),
+                            preco DOUBLE,
+                            peso DOUBLE
+                        );
+                    """);
+
+            st.execute("""
+                        CREATE TABLE ProdutoPedido (
+                            id INT PRIMARY KEY,
+                            idPedido INT,
+                            idProduto INT,
+                            quantidade INT,
+                            FOREIGN KEY (idPedido) REFERENCES Pedido(id),
+                            FOREIGN KEY (idProduto) REFERENCES Produto(id)
+                        );
+                    """);
+
+            st.execute("""
+                        CREATE TABLE Pagamento (
+                            idPagamento INT PRIMARY KEY,
+                            idPedido INT,
+                            valorPago DOUBLE,
+                            tipoPagamento VARCHAR(20),
+                            confirmado BOOLEAN,
+                            FOREIGN KEY (idPedido) REFERENCES Pedido(id)
+                        );
+                    """);
+
+            st.execute("""
+                        CREATE TABLE Entrega (
+                            id INT PRIMARY KEY,
+                            idPedido INT,
+                            idDrone INT,
+                            endereco VARCHAR(200),
+                            FOREIGN KEY (idPedido) REFERENCES Pedido(id),
+                            FOREIGN KEY (idDrone) REFERENCES Drone(id)
+                        );
+                    """);
+
+            System.out.println("Banco resetado automaticamente.");
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao resetar BD: " + e.getMessage());
+        }
+    }
+
     public static void main(String[] args) {
+        resetarBanco();
+        inicializarProdutos();
 
         while (true) {
             System.out.println("\n===== SISTEMA DE ENTREGAS POR DRONE =====");
             System.out.println("1. Cadastrar cliente");
             System.out.println("2. Cadastrar drone");
             System.out.println("3. Solicitar entrega");
-            System.out.println("4. Ver histórico de entregas por cliente");
-            System.out.println("5. Ver histórico de entregas por drone");
+            System.out.println("4. Histórico por cliente");
+            System.out.println("5. Histórico por drone");
             System.out.println("0. Sair");
             System.out.print("Escolha: ");
 
-            int op = sc.nextInt();
-            sc.nextLine();
-
             try {
+                String entrada = lerEntrada();
+
+                if (!entrada.matches("\\d+")) {
+                    System.out.println("Opção inválida!");
+                    continue;
+                }
+
+                int op = Integer.parseInt(entrada);
+
                 switch (op) {
                     case 1 -> cadastrarCliente();
                     case 2 -> cadastrarDrone();
@@ -38,139 +235,296 @@ public class Main {
                         System.out.println("Encerrado.");
                         return;
                     }
+                    default -> System.out.println("Opção inexistente!");
                 }
-            } catch (Exception e) {
+
+            } catch (RuntimeException e) {
+                if (e.getMessage().equals("VOLTAR_MENU")) {
+                    System.out.println("Voltando ao menu...");
+                    continue;
+                }
                 System.out.println("Erro: " + e.getMessage());
             }
         }
     }
 
+    // =========================================================
+    // CADASTRO DE CLIENTE (com "menu")
+    // =========================================================
     private static void cadastrarCliente() {
         System.out.println("\n=== CADASTRO DE CLIENTE ===");
+        try {
+            System.out.print("ID: ");
+            int id = lerInt();
 
-        System.out.print("ID: ");
-        int id = sc.nextInt();
-        sc.nextLine();
+            System.out.print("Nome: ");
+            String nome = lerEntrada();
 
-        System.out.print("Nome: ");
-        String nome = sc.nextLine();
+            System.out.print("Email: ");
+            String email = lerEntrada();
 
-        System.out.print("Email: ");
-        String email = sc.nextLine();
+            System.out.print("Senha: ");
+            String senha = lerEntrada();
 
-        System.out.print("Senha: ");
-        String senha = sc.nextLine();
+            System.out.print("Endereço completo: ");
+            String endereco = lerEntrada();
 
-        // Endereço poderia virar uma entidade, mas aqui mantemos simples
-        System.out.print("Endereço completo: ");
-        String endereco = sc.nextLine(); // não usamos ainda, mas atende ao requisito
+            Cliente c = new Cliente(id, nome, email, senha, endereco);
+            clienteDAO.salvar(c);
 
-        Cliente c = new Cliente(id, nome, email, senha);
-        clienteDAO.salvar(c);
+            System.out.println("Cliente cadastrado!");
 
-        System.out.println("Cliente cadastrado!");
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("VOLTAR_MENU")) {
+                System.out.println("Cancelado. Voltando ao menu.");
+                return;
+            }
+            throw e;
+        }
     }
 
+    // =========================================================
+    // CADASTRO DE DRONE (com "menu")
+    // =========================================================
     private static void cadastrarDrone() {
         System.out.println("\n=== CADASTRO DE DRONE ===");
+        try {
+            System.out.print("ID: ");
+            int id = lerInt();
 
-        System.out.print("ID: ");
-        int id = sc.nextInt();
+            System.out.print("Bateria (%): ");
+            int bateria = lerInt();
 
-        System.out.print("Bateria (%): ");
-        int bateria = sc.nextInt();
+            System.out.print("Capacidade de carga (kg): ");
+            double capacidade = lerDouble();
 
-        System.out.print("Capacidade de carga (kg): ");
-        double capacidade = sc.nextDouble();
+            Drone d = new Drone(id, bateria, capacidade);
+            droneDAO.salvar(d);
 
-        Drone d = new Drone(id, bateria, capacidade);
-        droneDAO.salvar(d);
+            System.out.println("Drone cadastrado!");
 
-        System.out.println("Drone cadastrado!");
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("VOLTAR_MENU"))
+                System.out.println("Cancelado. Voltando ao menu.");
+            else
+                throw e;
+        }
     }
 
+    // =========================================================
+    // SOLICITA ENTREGA (com "menu")
+    // =========================================================
     private static void solicitarEntrega() {
         System.out.println("\n=== SOLICITAÇÃO DE ENTREGA ===");
 
-        System.out.print("ID do cliente: ");
-        int idCliente = sc.nextInt();
-        sc.nextLine();
+        try {
+            System.out.print("ID do cliente: ");
+            int idCliente = lerInt();
 
-        Cliente cliente = clienteDAO.buscar(idCliente);
-        if (cliente == null)
-            throw new RuntimeException("Cliente não encontrado.");
+            Cliente cliente = clienteDAO.buscar(idCliente);
+            if (cliente == null)
+                throw new RuntimeException("Cliente não encontrado.");
 
-        System.out.print("Destino (endereço completo): ");
-        String destino = sc.nextLine();
+            // PASSO 1 — Criar pedido
+            int idPedido = gerarId();
+            Pedido pedido = new Pedido(idPedido, idCliente);
+            pedido.setValorTotal(0);
+            pedidoDAO.salvar(pedido);
 
-        validarEndereco(destino);
+            // PASSO 2 — Selecionar produtos
+            List<ProdutoPedido> itens = selecionarProdutos(idPedido);
 
-        System.out.print("Peso do pacote (kg): ");
-        double peso = sc.nextDouble();
+            if (itens.isEmpty()) {
+                System.out.println("Nenhum produto selecionado. Cancelado.");
+                return;
+            }
 
-        // Criar pedido
-        int idPedido = gerarId();
-        Pedido p = new Pedido(idPedido, idCliente);
-        p.setValorTotal(0); // simples
-        pedidoDAO.salvar(p);
+            // PASSO 3 — Atualizar valor total
+            double pesoTotal = calcularPesoTotal(itens);
+            double valorTotal = calcularValorTotal(itens);
+            pedido.setValorTotal(valorTotal);
+            pedidoDAO.atualizarValor(pedido);
 
-        // Selecionar drone mais adequado
-        Drone droneEscolhido = escolherDrone(peso);
-        if (droneEscolhido == null)
-            throw new RuntimeException("Nenhum drone disponível atende os requisitos.");
+            // PASSO 4 — Pagamento
+            System.out.println("\nSelecione o tipo de pagamento:");
+            System.out.println("1 - PIX");
+            System.out.println("2 - Crédito");
+            System.out.println("3 - Débito");
+            System.out.println("4 - Dinheiro");
 
-        // Criar entrega
-        int idEntrega = gerarId();
-        Entrega e = new Entrega(idEntrega, p.getId(), droneEscolhido.getIdDrone(), destino);
-        entregaDAO.salvar(e);
+            int tipoPag = lerInt();
 
-        System.out.println("Entrega criada com sucesso!");
-        System.out.println("Drone atribuído: " + droneEscolhido.getIdDrone());
+            TipoPagamento tipo = switch (tipoPag) {
+                case 1 -> TipoPagamento.PIX;
+                case 2 -> TipoPagamento.CARTAO_CREDITO;
+                case 3 -> TipoPagamento.CARTAO_DEBITO;
+                default -> TipoPagamento.DINHEIRO;
+            };
+
+            Pagamento pagamento = new Pagamento(gerarId(), idPedido, valorTotal, tipo);
+            pagamento.confirmar();
+            pagamentoDAO.salvar(pagamento);
+
+            // PASSO 5 — Endereço
+            System.out.print("Endereço de entrega: ");
+            String destino = lerEntrada();
+            validarEndereco(destino);
+
+            // PASSO 6 — Escolher drone
+            Drone drone = escolherDrone(pesoTotal);
+            if (drone == null)
+                throw new RuntimeException("Nenhum drone disponível.");
+
+            // PASSO 7 — Criar entrega
+            Entrega e = new Entrega(gerarId(), idPedido, drone.getIdDrone(), destino);
+            entregaDAO.salvar(e);
+
+            System.out.println("\nEntrega criada com sucesso!");
+            System.out.println("Drone atribuído: " + drone.getIdDrone());
+
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("VOLTAR_MENU"))
+                System.out.println("Cancelado. Voltando ao menu.");
+            else
+                throw e;
+        }
     }
 
+    // =========================================================
+    // HISTÓRICOS (com suporte ao menu)
+    // =========================================================
     private static void historicoPorCliente() {
         System.out.print("ID do cliente: ");
-        int id = sc.nextInt();
 
-        System.out.println("\n=== ENTREGAS DO CLIENTE " + id + " ===");
+        try {
+            int id = lerInt();
 
-        boolean encontrou = false;
+            System.out.println("\n=== HISTÓRICO DO CLIENTE " + id + " ===");
 
-        for (Entrega e : HashDatabase.entregas.values()) {
+            Connection con = null;
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
 
-            Pedido p = pedidoDAO.buscar(e.getIdPedido());
+            try {
+                con = ConnectionFactory.getConnection();
+                stmt = con.prepareStatement(
+                        "SELECT e.id AS entregaId, e.idDrone, p.id AS pedidoId " +
+                                "FROM Entrega e JOIN Pedido p ON e.idPedido = p.id " +
+                                "WHERE p.idCliente = ?");
 
-            if (p != null && p.getIdCliente() == id) {
-                encontrou = true;
-                System.out.println(
-                        "Entrega " + e.getId() +
-                                " - Pedido " + p.getId() +
-                                " - Drone " + e.getIdDrone());
+                stmt.setInt(1, id);
+                rs = stmt.executeQuery();
+
+                boolean achou = false;
+
+                while (rs.next()) {
+                    achou = true;
+                    System.out.println(
+                            "Entrega: " + rs.getInt("entregaId") +
+                                    " | Pedido: " + rs.getInt("pedidoId") +
+                                    " | Drone: " + rs.getInt("idDrone"));
+                }
+
+                if (!achou) {
+                    System.out.println("Nenhuma entrega encontrada.");
+                }
+
+            } catch (SQLException e) {
+                System.out.println("Erro ao buscar histórico do cliente: " + e.getMessage());
+            } finally {
+                if (rs != null)
+                    try {
+                        rs.close();
+                    } catch (Exception ignored) {
+                    }
+                if (stmt != null)
+                    try {
+                        stmt.close();
+                    } catch (Exception ignored) {
+                    }
+                if (con != null)
+                    try {
+                        con.close();
+                    } catch (Exception ignored) {
+                    }
             }
-        }
 
-        if (!encontrou) {
-            System.out.println("Nenhuma entrega encontrada para este cliente.");
+        } catch (RuntimeException e) {
+            if ("VOLTAR_MENU".equals(e.getMessage()))
+                System.out.println("Voltando ao menu...");
+            else
+                throw e; // deixa quebrar pra ver o erro real
         }
     }
 
     private static void historicoPorDrone() {
         System.out.print("ID do drone: ");
-        int id = sc.nextInt();
 
-        System.out.println("\n=== ENTREGAS DO DRONE " + id + " ===");
-        for (Entrega e : HashDatabase.entregas.values()) {
-            if (e.getIdDrone() == id) {
-                System.out.println("Entrega " + e.getId() + " - Pedido " + e.getId());
+        try {
+            int id = lerInt();
+
+            System.out.println("\n=== HISTÓRICO DO DRONE " + id + " ===");
+
+            Connection con = null;
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                con = ConnectionFactory.getConnection();
+                stmt = con.prepareStatement(
+                        "SELECT id, idPedido FROM Entrega WHERE idDrone = ?");
+
+                stmt.setInt(1, id);
+                rs = stmt.executeQuery();
+
+                boolean achou = false;
+
+                while (rs.next()) {
+                    achou = true;
+                    System.out.println(
+                            "Entrega: " + rs.getInt("id") +
+                                    " | Pedido: " + rs.getInt("idPedido"));
+                }
+
+                if (!achou) {
+                    System.out.println("Nenhuma entrega encontrada.");
+                }
+
+            } catch (SQLException e) {
+                System.out.println("Erro ao buscar histórico do drone: " + e.getMessage());
+            } finally {
+                if (rs != null)
+                    try {
+                        rs.close();
+                    } catch (Exception ignored) {
+                    }
+                if (stmt != null)
+                    try {
+                        stmt.close();
+                    } catch (Exception ignored) {
+                    }
+                if (con != null)
+                    try {
+                        con.close();
+                    } catch (Exception ignored) {
+                    }
             }
+
+        } catch (RuntimeException e) {
+            if ("VOLTAR_MENU".equals(e.getMessage()))
+                System.out.println("Voltando ao menu...");
+            else
+                throw e;
         }
     }
 
+    // =========================================================
+    // UTILIDADES
+    // =========================================================
     private static int gerarId() {
-        return new Random().nextInt(99999);
+        return new Random().nextInt(999999);
     }
 
-    // Regra simples: endereço válido tem pelo menos 10 caracteres e um número
     private static void validarEndereco(String endereco) {
         if (endereco.length() < 6 || !endereco.matches(".*\\d.*")) {
             throw new RuntimeException("Endereço inválido.");
@@ -178,16 +532,14 @@ public class Main {
     }
 
     private static Drone escolherDrone(double peso) {
+        List<Drone> drones = droneDAO.listarDisponiveis();
 
-        Drone melhor = null;
-
-        for (Drone d : HashDatabase.drones.values()) {
-            if (d.validarBateria() && d.validarPeso(peso)) {
-                melhor = d;
-                break; // arbitrário — pega o primeiro válido
+        for (Drone d : drones) {
+            if (d.validarPeso(peso)) {
+                return d;
             }
         }
 
-        return melhor;
+        return null;
     }
 }
